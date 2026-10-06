@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Report · Park Lens{% endblock %}
+
+{% macro analysis_card(title, a, empty_message) %}
+<div class="card">
+  <h2 class="section-title">{{ title }}</h2>
+  {% if a.total_parks %}
+  <div class="stats">
+    <div><span class="stat">{{ a.total_parks }}</span><span class="stat-label">parks</span></div>
+    <div><span class="stat">{{ a.camping_percent }}%</span><span class="stat-label">offer camping</span></div>
+    <div><span class="stat">{{ a.hiking_percent }}%</span><span class="stat-label">offer hiking</span></div>
+    <div><span class="stat">{{ a.average_activities }}</span><span class="stat-label">activities per park</span></div>
+  </div>
+  {% if a.most_common_activity %}
+  <p>Most common activity: <strong>{{ a.most_common_activity }}</strong></p>
+  {% endif %}
+  <ul class="breakdown">
+    {% for item in a.top_activities %}
+    <li>
+      <div class="row"><span class="label">{{ item.name }}</span><span class="count">{{ item.count }} · {{ item.percent }}%</span></div>
+      <div class="bar"><div class="fill" style="width: {{ item.percent }}%"></div></div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">{{ empty_message }}</p>
+  {% endif %}
+</div>
+{% endmacro %}
+
+{% block content %}
+<header>
+  <h1>Park Lens Report</h1>
+  <p class="subtitle">Everything Park Lens has collected so far.</p>
+</header>
+
+<div class="card">
+  <div class="stats">
+    <div><span class="stat">{{ report.counts.parks }}</span><span class="stat-label">parks stored</span></div>
+    <div><span class="stat">{{ report.counts.searches }}</span><span class="stat-label">searches run</span></div>
+    <div><span class="stat">{{ report.counts.favorites }}</span><span class="stat-label">favorites saved</span></div>
+  </div>
+</div>
+
+{% set national = report.snapshots.get("national-parks") %}
+{% if national %}
+{{ analysis_card("National Parks · background analysis", national.analysis, "") }}
+<p class="muted snapshot-note">
+  Collected {{ report.latest_collection.collected_at.replace("T", " ") }} UTC
+  ({{ report.latest_collection.parks_count }} NPS sites, {{ report.latest_collection.alerts_count }} alerts);
+  analyzed {{ national.created_at.replace("T", " ") }} UTC.
+  {{ national.analysis.alerts_percent }}% have current alerts.
+</p>
+{% endif %}
+
+{{ analysis_card("All stored parks", report.stored_parks_analysis, "No parks stored yet. Run a search to collect data.") }}
+{{ analysis_card("Your favorites", report.favorites_analysis, "No favorites saved yet.") }}
+
+<div class="card">
+  <h2 class="section-title">Most searched</h2>
+  {% if report.top_queries %}
+  <ol class="plain-list">
+    {% for q in report.top_queries %}
+    <li>{{ q.query }} <span class="muted">({{ q.count }})</span></li>
+    {% endfor %}
+  </ol>
+  {% else %}
+  <p class="muted">No keyword searches yet.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2 class="section-title">Recent searches</h2>
+  {% if report.recent_searches %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>When (UTC)</th><th>Search</th><th>Parks</th><th>Camping</th><th>Hiking</th><th>Alerts</th></tr>
+      </thead>
+      <tbody>
+        {% for s in report.recent_searches %}
+        <tr>
+          <td>{{ s.created_at.replace("T", " ") }}</td>
+          <td>
+            {{ s.query or "" }}{% if s.state_code %} {{ states.get(s.state_code, s.state_code) }}{% endif %}
+            {% if s.national_only %}<span class="tag">National Parks</span>{% endif %}
+          </td>
+          <td>{{ s.result_count }}</td>
+          <td>{{ s.camping_percent }}%</td>
+          <td>{{ s.hiking_percent }}%</td>
+          <td>{{ s.alerts_percent }}%</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="muted">No searches yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

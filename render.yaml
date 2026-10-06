@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: park-lens
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: sh bin/start-all.sh
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: NPS_API_KEY
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+      - key: DATABASE_PATH
+        value: /var/data/parks.db
+    disk:
+      name: park-lens-data
+      mountPath: /var/data
+      sizeGB: 1

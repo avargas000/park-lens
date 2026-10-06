@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Park Lens{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <nav class="nav">
+    <a class="brand" href="{{ url_for('main') }}">Park Lens</a>
+    <div class="nav-links">
+      <a href="{{ url_for('main') }}" {% if request.endpoint == 'main' %}class="active"{% endif %}>Search</a>
+      <a href="{{ url_for('report') }}" {% if request.endpoint == 'report' %}class="active"{% endif %}>Report</a>
+    </div>
+  </nav>
+  <main class="container">
+    {% block content %}{% endblock %}
+    <footer>
+      Not affiliated with the National Park Service. Park, activity and alert data comes from the
+      <a href="https://www.nps.gov/subjects/developer/api-documentation.htm" target="_blank" rel="noopener">NPS Data API</a>.
+    </footer>
+  </main>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

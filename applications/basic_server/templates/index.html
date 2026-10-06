@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block content %}
+<header>
+  <h1>Park Lens</h1>
+  <p class="subtitle">Search National Park Service sites and see what they have to offer.</p>
+  {% if not configured %}
+  <p class="banner banner-error">
+    The NPS API key isn't configured. Request a free key at
+    <a href="https://www.nps.gov/subjects/developer/get-started.htm" target="_blank" rel="noopener">nps.gov</a>
+    and set <code>NPS_API_KEY</code> to enable searches.
+  </p>
+  {% endif %}
+</header>
+
+<form id="search-form" class="card search">
+  <label for="q">Search for a park</label>
+  <div class="search-row">
+    <div class="combobox">
+      <input id="q" name="q" placeholder="Yellowstone" autocomplete="off" maxlength="100"
+             role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="suggestions">
+      <ul id="suggestions" class="suggestions" role="listbox" hidden></ul>
+    </div>
+    <button type="submit">Search</button>
+  </div>
+  <div class="filters">
+    <select id="state" name="state" aria-label="State">
+      <option value="">Any state</option>
+      {% for code, name in states.items() %}
+      <option value="{{ code }}">{{ name }}</option>
+      {% endfor %}
+    </select>
+    <label class="checkbox">
+      <input type="checkbox" id="national-only" name="national_only"> National Parks only
+    </label>
+  </div>
+  <div class="samples">
+    <span>Try:</span>
+    <button type="button" class="chip" data-q="Yellowstone">Yellowstone</button>
+    <button type="button" class="chip" data-state="UT">Utah</button>
+    <button type="button" class="chip" data-q="canyon">canyon</button>
+    <button type="button" class="chip" data-national="1">All 63 National Parks</button>
+  </div>
+  <p id="error" class="error" hidden></p>
+</form>
+
+<section id="result" hidden>
+  <div class="card insights">
+    <h2>INSIGHTS</h2>
+    <ul class="summary" id="summary"></ul>
+    <p class="note" id="alerts-note" hidden>Alerts couldn't be loaded, so alert figures may be low.</p>
+    <h3>Top activities</h3>
+    <ul class="breakdown" id="activities"></ul>
+    <h3 id="states-heading">Top states</h3>
+    <ul class="pill-list" id="states-list"></ul>
+  </div>
+
+  <div id="parks"></div>
+</section>
+
+<section class="card" id="favorites-card">
+  <h2 class="section-title">Favorite parks</h2>
+  <ul class="favorites" id="favorites">
+    {% for park in favorites %}
+    <li data-code="{{ park.park_code }}">
+      <span><strong>{{ park.name }}</strong>{% if park.note %} — {{ park.note }}{% endif %}</span>
+      <button type="button" class="link remove-favorite" data-code="{{ park.park_code }}">Remove</button>
+    </li>
+    {% endfor %}
+  </ul>
+  <p class="muted" id="no-favorites" {% if favorites %}hidden{% endif %}>No favorites yet. Save a park from your search results.</p>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% endblock %}
